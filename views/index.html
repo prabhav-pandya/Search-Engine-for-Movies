@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search Engine</title>
+    <link href="search-page.css" rel="stylesheet" type="text/css">
+    <script src="https://kit.fontawesome.com/12bf449f98.js" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="center">
+        <div class="search-outline">
+            <div class="searchbar">
+                <input class="search_in" placeholder="Search movie..." id="search-term" onkeyup="autocomp()">
+                <button class="searchbtn" id="searchbtn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="auto-complete">
+            <ul id="autocompletelist">
+
+            </ul>
+        </div>
+
+        <div class="search-results">
+            <ul id="search-results">
+
+            </ul>
+        </div>
+    </div>
+</body>
+
+<script>
+    list = document.getElementById("autocompletelist");
+    function autocomp() {
+        const input = document.getElementById("search-term").value;
+        if (input !== '') {
+
+            var requestOptions = {
+                method: 'GET',
+                redirect: 'follow'
+            };
+
+            fetch(`http://localhost:3000/autocomplete/${input}`, requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    var suggestions = JSON.parse(result).res;
+                    list.innerHTML = ``;
+                    for (var i = 0; i < suggestions.length; i++) {
+                        list.innerHTML += `<li class="search-suggestions">${suggestions[i]}</li>`;
+                    }
+                    set_suggestion_props();
+
+                })
+                .catch(error => console.log('error', error));
+        }
+        else {
+            list.innerHTML = '';
+        }
+    }
+
+</script>
+
+<script>
+
+    const searchbtn = document.getElementById("searchbtn");
+    searchbtn.addEventListener("click", () => {
+        const input = document.getElementById("search-term").value;
+        document.getElementById("search-term").value = '';
+        document.getElementById("search-results").innerHTML = '';
+        document.getElementById("autocompletelist").innerHTML = '';
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch(`http://localhost:3000/search/${input}`, requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                var results = JSON.parse(result).res;
+                console.log(results);
+                var resultList = document.getElementById("search-results");
+                for (var i = 0; i < results.length; i++) {
+                    resultList.innerHTML += `
+                    <li>
+                    <div>
+                        <h4>${results[i].title}</h4>
+                        <p>Genre: ${results[i].genres}</p>
+                        <p>Cast: ${results[i].cast}</p>
+                        <p>Year: ${results[i].year}</p>
+                    </div>
+                </li>
+                    `;
+                }
+
+
+            })
+            .catch(error => console.log('error', error));
+    });
+</script>
+
+<script>
+    function set_suggestion_props() {
+        let suggestions = document.getElementsByClassName('search-suggestions');
+        var input_field = document.getElementById("search-term");
+        for (let i = 0; i < suggestions.length; i++) {
+            suggestions[i].addEventListener("click", () => {
+                input_field.value = suggestions[i].innerText;
+            });
+        }
+    }
+
+</script>
+
+
+</html>
